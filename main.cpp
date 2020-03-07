@@ -20,11 +20,11 @@ struct GlowStruct {
 
 int main() {
 	/*
-	Creo un objeto de MemoryManager que va a:
-		-Buscar el id del proceso
-		-Buscar el address del modulo
-		-Abrir el proceso
-		-Escribir y leer en la memoria
+	I create a Memorymanager object which is going to: 
+		-Search for the process ID
+		-Search for the module address
+		-"Open up" the process
+		-Read and write its associated process memory
 		-
 	
 	*/
@@ -38,22 +38,25 @@ int main() {
 
 	/*
 	TODO
-	Creo una clase entidad
-		-Creo un arreglo de entidades donde la posicion 0 es mi jugador
-		-Agregar y remover jugadores con el transcurso del tiempo (entran y salen)
+	Create an Entity struct
+		-Create a vector of entities
+		-Add and remove players as time goes by.
 
 
-	Por ahora solo recorrer [moduleAddress + Offsets::dwEntityList + i * Offsets::entitySize] + Offsets::m_iHealth y mostrar la vida
-	de todos los jugadores.
+	For now I just want to go through [moduleAddress + Offsets::dwEntityList + i * Offsets::entitySize] + Offsets::m_iHealth and show the
+	players' health.
 	*/
 
-	//TODO: Verificar que este vector no esté siendo inicializado en definicion, solo cuando vaya al loop linea 70
+	//TODO: Verify if entityList is being initialized upon defining it.
+	// DONE: It's been verified that entityList is not being initialized upon definition.
+
 	std::vector<Entity> entityList;
 	entityList.reserve(9);
 	
 	while (true) {
 		/*
-		TODO: Por cada ciclo tengo que recorrer la entityList y chequear para todo jugador, podría remover los id que antes estaban y ahora no
+		TODO: For every cicle I should go through entityList and deal with missing IDs from previous cycles. Meaning players that are no longer playing
+		shouldn't be inside the vector
 		*/
 
 		uintptr_t playerAddress = moduleAddress + Offsets::dwLocalPlayer;
@@ -67,18 +70,16 @@ int main() {
 		//ReadProcessMemory(mem.GetProcessHandle(), (LPCVOID)mem.FindDMAAddr(playerAddress, { Offsets::m_iTeamNum }), &playerTeam, sizeof(uintptr_t), nullptr);
 		playerTeam = mem.Read<uintptr_t>(playerAddress, { Offsets::m_iTeamNum });
 
-		// entityList[i - 1].push_back(Entity());    experimentar con esto dado std::vector<Entity> entityList[9];
-		// entityList->push_back(Entity());          dado std::vector<Entity> entityList[9];
+		// entityList[i - 1].push_back(Entity());    experiment with that given this: std::vector<Entity> entityList[9];
+		// entityList->push_back(Entity());          given: std::vector<Entity> entityList[9];
 
 		for (int i = 1; i < 10; i++) {
-			//Inicializo el arreglo de entidades
+			//entityList initialization
 			//Entity ent = mem.LoadEntity(entityListAddress + i * Offsets::entitySize);
 //			entityList.emplace_back(mem.LoadEntity(entityListAddress + i * Offsets::entitySize));
 
 			/*
-			Me decidi por esta opcion porque pasando la referencia del vector y llamando emplace_back
-			evito que se realicen copias innecesarias. Por lo tanto la opción de abajo es la más eficiente, quizás no sea la más prolija
-xd
+			Option below is the better one given that there are no innecesary copies being made when adding entities to entityList
 			*/
 			mem.LoadEntity(entityList, entityListAddress + i * Offsets::entitySize);
 
@@ -86,9 +87,9 @@ xd
 
 		int sameTeam{ 0 }, enemyTeam{ 0 };
 		for (int i = 1; i < 10; i++) {
-			//uintptr_t entityAddress = entityListAddress + i * Offsets::entitySize;				 // De acá hacia entitySerialNumber lo voy a mover a mem
+			//uintptr_t entityAddress = entityListAddress + i * Offsets::entitySize;		
 		//	uintptr_t entityTeam = mem.Read<uintptr_t>(entityAddress, { Offsets::m_iTeamNum });
-		//	uintptr_t entitySerialNumber = mem.Read<uintptr_t>(entityAddress + 0x04);
+		//	uintptr_t entitySerialNumber = mem.Read<uintptr_t>(entityAddress + 0x04);    -> This value is incorrect. Current status: unknown.
 			/*bool isEntityDoormant = mem.Read<bool>(entityAddress, { Offsets::m_bDormant });
 			
 
