@@ -78,7 +78,7 @@ int main() {
 			/*
 			Me decidi por esta opcion porque pasando la referencia del vector y llamando emplace_back
 			evito que se realicen copias innecesarias. Por lo tanto la opción de abajo es la más eficiente, quizás no sea la más prolija
-
+xd
 			*/
 			mem.LoadEntity(entityList, entityListAddress + i * Offsets::entitySize);
 
