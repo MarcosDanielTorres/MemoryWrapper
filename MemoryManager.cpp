@@ -70,6 +70,10 @@ uintptr_t MemoryManager::FindDMAAddr(uintptr_t address, std::vector<int> offsets
 		ReadProcessMemory(hProcess, (LPCVOID)newAddress, &newAddress, sizeof(uintptr_t), nullptr);
 		newAddress += offsets[i];
 	}
-
 	return newAddress;
+}
+
+// Este metodo probablemente tenga que estar en otro lado
+void MemoryManager::LoadEntity(std::vector<Entity>& ent, uintptr_t address) {
+	ent.emplace_back( Read<int>(address, { Offsets::m_iHealth }), Read<int>(address, { Offsets::m_iTeamNum }));
 }

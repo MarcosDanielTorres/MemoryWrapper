@@ -1,7 +1,7 @@
 #include<iostream>
 #include "MemoryManager.h"
 #include "Offsets.h"
-
+#include "Entity.h"
 
 
 struct GlowStruct {
@@ -47,7 +47,9 @@ int main() {
 	de todos los jugadores.
 	*/
 
-	//TODO: Entity entityList[100]
+	//TODO: Verificar que este vector no esté siendo inicializado en definicion, solo cuando vaya al loop linea 70
+	std::vector<Entity> entityList;
+	entityList.reserve(9);
 	
 	while (true) {
 		/*
@@ -64,23 +66,40 @@ int main() {
 
 		//ReadProcessMemory(mem.GetProcessHandle(), (LPCVOID)mem.FindDMAAddr(playerAddress, { Offsets::m_iTeamNum }), &playerTeam, sizeof(uintptr_t), nullptr);
 		playerTeam = mem.Read<uintptr_t>(playerAddress, { Offsets::m_iTeamNum });
-		
+
+		// entityList[i - 1].push_back(Entity());    experimentar con esto dado std::vector<Entity> entityList[9];
+		// entityList->push_back(Entity());          dado std::vector<Entity> entityList[9];
+
+		for (int i = 1; i < 10; i++) {
+			//Inicializo el arreglo de entidades
+			//Entity ent = mem.LoadEntity(entityListAddress + i * Offsets::entitySize);
+//			entityList.emplace_back(mem.LoadEntity(entityListAddress + i * Offsets::entitySize));
+
+			/*
+			Me decidi por esta opcion porque pasando la referencia del vector y llamando emplace_back
+			evito que se realicen copias innecesarias. Por lo tanto la opción de abajo es la más eficiente, quizás no sea la más prolija
+
+			*/
+			mem.LoadEntity(entityList, entityListAddress + i * Offsets::entitySize);
+
+		}
 
 		int sameTeam{ 0 }, enemyTeam{ 0 };
 		for (int i = 1; i < 10; i++) {
-			uintptr_t entityAddress = entityListAddress + i * Offsets::entitySize;
-			uintptr_t entityTeam = mem.Read<uintptr_t>(entityAddress, { Offsets::m_iTeamNum });
-			uintptr_t entitySerialNumber = mem.Read<uintptr_t>(entityAddress + 0x04);
-			bool isEntityDoormant = mem.Read<bool>(entityAddress, { Offsets::m_bDormant });
+			//uintptr_t entityAddress = entityListAddress + i * Offsets::entitySize;				 // De acá hacia entitySerialNumber lo voy a mover a mem
+		//	uintptr_t entityTeam = mem.Read<uintptr_t>(entityAddress, { Offsets::m_iTeamNum });
+		//	uintptr_t entitySerialNumber = mem.Read<uintptr_t>(entityAddress + 0x04);
+			/*bool isEntityDoormant = mem.Read<bool>(entityAddress, { Offsets::m_bDormant });
 			
+
 			if (isEntityDoormant) {
-				std::cout << "Server is not sending info from: " << entitySerialNumber << std::endl;
+				std::cout << "Server is not sending info from: " << entitySerialNumber << std::endl; 
 			}
 			else {
 				std::cout << "Server is sending info from: " << entitySerialNumber<< std::endl;
-			}
+			}*/
 			
-			if (playerTeam == entityTeam) {
+			if (playerTeam == entityList[i - 1].teamNumber) {
 				sameTeam++;
 			}
 			else {
@@ -88,9 +107,9 @@ int main() {
 			}
 			
 		}
-		/*
+		
 				std::cout << "Teammates: " << sameTeam << std::endl;
-				std::cout << "Enemies: " << enemyTeam << std::endl;*/
+				std::cout << "Enemies: " << enemyTeam << std::endl;
 		std::cout << "------------------" << std::endl;
 		Sleep(20000);
 
